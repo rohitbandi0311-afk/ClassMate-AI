@@ -29,9 +29,11 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
   onSubmitAssessment,
   isEvaluating,
 }) => {
+  const isBinarySearch = !analysis.topic || analysis.topic.toLowerCase().includes('binary search');
   const dynamicQuestions: AssessmentQuestion[] = analysis.assessmentQuestions && analysis.assessmentQuestions.length >= 3
     ? analysis.assessmentQuestions
-    : [
+    : isBinarySearch
+    ? [
         {
           id: 'q1',
           type: 'mcq',
@@ -57,6 +59,34 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
           prompt: 'Explain in your own words why binary search is O(log n).',
           hint: 'Connect the halving of the list to inverse powers of 2.',
           targetConcept: 'O(log n) Time Complexity',
+        },
+      ]
+    : [
+        {
+          id: 'q1',
+          type: 'mcq',
+          prompt: `What is the foundational prerequisite or structural rule for ${analysis.topic}?`,
+          options: [
+            { id: 'opt_a', label: 'Satisfying the structural definitions and invariants of the domain' },
+            { id: 'opt_b', label: 'Allowing arbitrary inconsistent data representation' },
+            { id: 'opt_c', label: 'Ignoring entity relationships and constraints' },
+            { id: 'opt_d', label: 'Restricting access exclusively to single-record memory caches' },
+          ],
+          targetConcept: `${analysis.topic} Foundations`,
+        },
+        {
+          id: 'q2',
+          type: 'short_answer',
+          prompt: `What primary distinguishing property characterizes the core concepts in ${analysis.topic}?`,
+          hint: 'Think about definitions, cardinalities, or operational rules.',
+          targetConcept: `${analysis.topic} Core Principles`,
+        },
+        {
+          id: 'q3',
+          type: 'explanation',
+          prompt: `Explain in your own words the significance of ${analysis.topic} and how its core concepts relate to one another.`,
+          hint: 'Describe clear real-world examples and why the distinction matters.',
+          targetConcept: `${analysis.topic} Application`,
         },
       ];
 

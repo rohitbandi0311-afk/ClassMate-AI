@@ -6,7 +6,7 @@ import {
   AssessmentAnswer,
 } from '../types';
 
-export async function checkServerHealth(): Promise<{ hasGeminiKey: boolean }> {
+export async function checkServerHealth(): Promise<{ hasGeminiKey: boolean; model?: string; status?: string }> {
   try {
     const res = await fetch('/api/health');
     if (!res.ok) return { hasGeminiKey: false };
@@ -20,16 +20,25 @@ export async function analyzeMaterial(params: {
   imageBase64?: string;
   mimeType?: string;
   textNotes?: string;
+  isDemo?: boolean;
 }): Promise<MaterialAnalysis> {
   const res = await fetch('/api/analyze-material', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   });
-  if (!res.ok) {
-    throw new Error(`Failed to analyze material: ${res.statusText}`);
+
+  const json = await res.json().catch(() => null);
+
+  if (!res.ok || (json && json.success === false)) {
+    const errMsg = json?.error || `Failed to analyze material (HTTP ${res.status}): ${res.statusText}`;
+    throw new Error(errMsg);
   }
-  const json = await res.json();
+
+  if (!json?.data) {
+    throw new Error('No structured analysis returned from server.');
+  }
+
   return json.data;
 }
 
@@ -45,10 +54,14 @@ export async function askAITutor(params: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   });
-  if (!res.ok) {
-    throw new Error(`Tutor error: ${res.statusText}`);
+
+  const json = await res.json().catch(() => null);
+
+  if (!res.ok || (json && json.success === false)) {
+    const errMsg = json?.error || `Tutor error (HTTP ${res.status}): ${res.statusText}`;
+    throw new Error(errMsg);
   }
-  const json = await res.json();
+
   return json.responseText;
 }
 
@@ -64,10 +77,14 @@ export async function evaluateAssessment(params: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   });
-  if (!res.ok) {
-    throw new Error(`Evaluation error: ${res.statusText}`);
+
+  const json = await res.json().catch(() => null);
+
+  if (!res.ok || (json && json.success === false)) {
+    const errMsg = json?.error || `Evaluation error (HTTP ${res.status}): ${res.statusText}`;
+    throw new Error(errMsg);
   }
-  const json = await res.json();
+
   const raw: any = json.diagnosis || {};
 
   // Normalize structure ensuring both concept_scores array and conceptUnderstanding dictionary exist
@@ -87,10 +104,10 @@ export async function evaluateAssessment(params: {
     overall_score: typeof raw.overall_score === 'number' ? raw.overall_score : (raw.overallMastery || 74),
     concept_scores: conceptScores,
     understood: Array.isArray(raw.understood) ? raw.understood : [
-      'Understands the basic procedure and halving mechanism',
+      'Understands the basic premise and foundational definitions',
     ],
     misconception: raw.misconception || raw.misconceptionHeadline || raw.misconceptionTitle || 'Conceptual reasoning gap detected.',
-    missing_reasoning: raw.missing_reasoning || (Array.isArray(raw.missingReasoning) ? raw.missingReasoning.join('. ') : 'Missing core mathematical justification.'),
+    missing_reasoning: raw.missing_reasoning || (Array.isArray(raw.missingReasoning) ? raw.missingReasoning.join('. ') : 'Missing core mathematical or logical justification.'),
     severity: raw.severity || 'medium',
     recommended_intervention: raw.recommended_intervention || raw.recommendedAction || 'Start 3-minute targeted recovery lesson.',
     // Backwards compatibility mappings
@@ -113,22 +130,26 @@ export async function generateRecoveryLesson(params: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   });
-  if (!res.ok) {
-    throw new Error(`Recovery error: ${res.statusText}`);
+
+  const json = await res.json().catch(() => null);
+
+  if (!res.ok || (json && json.success === false)) {
+    const errMsg = json?.error || `Recovery error (HTTP ${res.status}): ${res.statusText}`;
+    throw new Error(errMsg);
   }
-  const json = await res.json();
+
   const raw = json.lesson || {};
 
   return {
     title: raw.title || '3-minute recovery',
-    targetGap: raw.targetGap || 'Connecting core intuition to principles',
+    targetGap: raw.targetGap || 'Connecting core intuition to first principles',
     simpleExplanation: raw.simpleExplanation || raw.simpleIntuition || 'Let us simplify the underlying concept step-by-step.',
-    intuitiveAnalogy: raw.intuitiveAnalogy || 'Like repeatedly folding a sheet of paper in half.',
+    intuitiveAnalogy: raw.intuitiveAnalogy || 'Like searching for a word in a dictionary or organizing a library.',
     workedExample: raw.workedExample || (raw.mathematicalInsight || 'Step-by-step walkthrough of the mechanism.'),
     practiceQuestion: raw.practiceQuestion || {
-      prompt: 'If there are 32 elements, approximately how many times can we halve the search space before reaching one?',
-      expectedAnswer: '5',
-      hint: '2^k = 32',
+      prompt: 'How would you apply this newly clarified concept to a fresh scenario?',
+      expectedAnswer: 'Apply the foundational principle directly.',
+      hint: 'Recall the core definition covered above.',
     },
     halvingLadder: raw.halvingLadder,
   };
@@ -136,7 +157,7 @@ export async function generateRecoveryLesson(params: {
 
 export async function evaluateReassessment(params: {
   studentAnswer: string;
-  practiceQuestion: { prompt: string };
+  practiceQuestion: { prompt: string; expectedAnswer?: string };
   targetConcept?: string;
   beforeScore?: number;
 }): Promise<ReassessmentResult> {
@@ -145,9 +166,13 @@ export async function evaluateReassessment(params: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   });
-  if (!res.ok) {
-    throw new Error(`Reassessment error: ${res.statusText}`);
+
+  const json = await res.json().catch(() => null);
+
+  if (!res.ok || (json && json.success === false)) {
+    const errMsg = json?.error || `Reassessment error (HTTP ${res.status}): ${res.statusText}`;
+    throw new Error(errMsg);
   }
-  const json = await res.json();
+
   return json.result;
 }

@@ -13,6 +13,10 @@ import {
   Target,
   FileCheck,
   Check,
+  AlertCircle,
+  RefreshCw,
+  Play,
+  ArrowLeft,
 } from 'lucide-react';
 import { MaterialAnalysis } from '../types';
 
@@ -21,6 +25,10 @@ interface UnderstandScreenProps {
   scannedImage: string | null;
   onStartLesson: () => void;
   isLoading?: boolean;
+  errorMessage?: string | null;
+  onRetry?: () => void;
+  onLoadDemo?: () => void;
+  onBackHome?: () => void;
 }
 
 export const UnderstandScreen: React.FC<UnderstandScreenProps> = ({
@@ -28,6 +36,10 @@ export const UnderstandScreen: React.FC<UnderstandScreenProps> = ({
   scannedImage,
   onStartLesson,
   isLoading,
+  errorMessage,
+  onRetry,
+  onLoadDemo,
+  onBackHome,
 }) => {
   const [showFullImage, setShowFullImage] = useState(false);
 
@@ -41,28 +53,76 @@ export const UnderstandScreen: React.FC<UnderstandScreenProps> = ({
           Analyzing Classroom Material...
         </h2>
         <p className="text-sm text-slate-400 max-w-sm">
-          Gemini Vision is parsing handwritten board notes, extracting core mathematical principles, and synthesizing learning objectives.
+          Gemini Vision is parsing handwritten board notes, extracting core academic principles, and synthesizing customized learning objectives.
         </p>
       </div>
     );
   }
 
-  const topicName = analysis.topic || 'Binary Search';
+  // Clear, non-silent error presentation
+  if (errorMessage) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-12">
+        <div className="p-8 rounded-3xl bg-slate-900/90 border border-rose-500/40 shadow-2xl backdrop-blur-xl text-center">
+          <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto mb-5">
+            <AlertCircle className="w-8 h-8" />
+          </div>
+
+          <h2 className="text-2xl font-bold text-white mb-2">
+            Analysis Could Not Complete
+          </h2>
+
+          <p className="text-sm text-slate-300 mb-6 bg-slate-950/80 p-4 rounded-xl border border-slate-800 font-mono text-left break-words">
+            {errorMessage}
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            {onRetry && (
+              <button
+                onClick={onRetry}
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-sky-500/20 cursor-pointer"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Retry Analysis</span>
+              </button>
+            )}
+
+            {onLoadDemo && (
+              <button
+                onClick={onLoadDemo}
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium flex items-center justify-center gap-2 transition-all border border-slate-700 cursor-pointer"
+              >
+                <Play className="w-4 h-4 text-emerald-400" />
+                <span>Load Binary Search Demo</span>
+              </button>
+            )}
+
+            {onBackHome && (
+              <button
+                onClick={onBackHome}
+                className="w-full sm:w-auto px-4 py-3 rounded-xl bg-transparent hover:bg-slate-800/60 text-slate-400 hover:text-white font-medium flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const topicName = analysis.topic || 'Extracted Material';
   const conceptsList = analysis.concepts && analysis.concepts.length > 0
     ? analysis.concepts
-    : [
-        { id: '1', name: 'Sorted arrays', description: 'Monotonic order required to eliminate 50% candidates.' },
-        { id: '2', name: 'Divide and conquer', description: 'Recursive or iterative halving around midpoint.' },
-        { id: '3', name: 'Search-space reduction', description: 'Candidates reduce by half at each comparison step.' },
-        { id: '4', name: 'O(log n) Time Complexity', description: 'Inverse of exponential growth: k = log2(N).' },
-      ];
+    : [];
 
   const learningObjectives = analysis.learningObjectives && analysis.learningObjectives.length > 0
     ? analysis.learningObjectives
     : [
-        'Understand why sorted data is a mandatory precondition',
-        'Demonstrate the space-halving algorithm step by step',
-        'Explain in your own words why repeatedly halving the search space produces O(log n)',
+        'Master the foundational definitions and schema properties',
+        'Identify real-world distinctions between categories',
+        'Apply principles to solve concrete examination problems',
       ];
 
   return (
@@ -77,7 +137,7 @@ export const UnderstandScreen: React.FC<UnderstandScreenProps> = ({
         {scannedImage && (
           <button
             onClick={() => setShowFullImage(true)}
-            className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-700 transition-colors"
+            className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-700 transition-colors cursor-pointer"
           >
             <Eye className="w-3.5 h-3.5" />
             <span>View Board Snapshot</span>
@@ -98,100 +158,99 @@ export const UnderstandScreen: React.FC<UnderstandScreenProps> = ({
           Topic: <span className="bg-gradient-to-r from-sky-400 to-indigo-300 bg-clip-text text-transparent">{topicName}</span>
         </h1>
 
-        {analysis.overview && (
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-6 bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
-            {analysis.overview}
+        {analysis.subtitle && (
+          <p className="text-base text-slate-300 mb-4 font-medium leading-relaxed">
+            {analysis.subtitle}
           </p>
         )}
 
-        {/* Concepts List */}
-        <div className="mb-6">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3 flex items-center gap-1.5">
-            <Layers className="w-4 h-4 text-sky-400" />
-            Concepts
-          </h2>
+        <p className="text-sm text-slate-400 leading-relaxed max-w-3xl">
+          {analysis.overview}
+        </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {conceptsList.map((concept, idx) => (
-              <div
-                key={concept.id || idx}
-                className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800/80 flex items-start gap-3 hover:border-slate-700 transition-colors"
-              >
-                <div className="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 border border-sky-500/30">
-                  •
-                </div>
-                <div>
-                  <h3 className="font-bold text-white text-sm">
-                    {concept.name}
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
-                    {concept.description}
-                  </p>
-                </div>
-              </div>
-            ))}
+        <div className="mt-5 flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-300">
+          <div className="flex items-center gap-1.5 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800">
+            <Clock className="w-4 h-4 text-amber-400" />
+            <span>{analysis.estimatedDurationMinutes || 8} min estimated mastery</span>
           </div>
-        </div>
-
-        {/* Learning Objectives List */}
-        <div>
-          <h2 className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3 flex items-center gap-1.5">
-            <Target className="w-4 h-4 text-emerald-400" />
-            Learning Objectives
-          </h2>
-
-          <div className="space-y-2 bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
-            {learningObjectives.map((obj, idx) => (
-              <div key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-200">
-                <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                <span>{obj}</span>
-              </div>
-            ))}
+          <div className="flex items-center gap-1.5 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800">
+            <Layers className="w-4 h-4 text-sky-400" />
+            <span>{conceptsList.length} Core Concepts</span>
           </div>
         </div>
       </div>
 
-      {/* Definitions and Worked Examples if present */}
-      {(analysis.definitions || analysis.importantDefinitions) && (
-        <div className="mb-8 p-5 rounded-2xl bg-slate-900 border border-slate-800">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-3 flex items-center gap-1.5">
-            <BookOpen className="w-4 h-4" />
-            Key Definitions Extracted
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {(analysis.definitions || analysis.importantDefinitions)?.map((def, idx) => (
-              <div key={idx} className="p-3 rounded-xl bg-slate-950 border border-slate-800/60">
-                <span className="font-bold text-slate-200 text-xs block mb-1">
-                  • {def.term}
-                </span>
-                <span className="text-xs text-slate-400 block leading-relaxed">{def.definition}</span>
+      {/* Concepts Grid */}
+      {conceptsList.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+            <Layers className="w-5 h-5 text-sky-400" />
+            <span>Key Concepts Extracted</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {conceptsList.map((concept, idx) => (
+              <div
+                key={concept.id || idx}
+                className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-colors"
+              >
+                <div className="flex items-start justify-between mb-1.5">
+                  <h3 className="text-sm font-bold text-white">{concept.name}</h3>
+                  {concept.importance && (
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                      {concept.importance}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {concept.description}
+                </p>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Primary Action Button: "Start Learning" */}
-      <div className="sticky bottom-4 z-30 p-3 bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-800 shadow-2xl">
-        <button
-          id="btn-start-learning"
-          onClick={onStartLesson}
-          className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-sky-500 via-indigo-600 to-sky-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-base shadow-xl shadow-sky-500/25 active:scale-[0.99] transition-all flex items-center justify-center gap-2 group"
-        >
-          <span>Start Learning</span>
-          <ArrowRight className="w-5 h-5 text-sky-200 group-hover:translate-x-1 transition-transform" />
-        </button>
+      {/* Learning Objectives */}
+      <div className="mb-8 p-5 rounded-2xl bg-slate-900/40 border border-slate-800">
+        <h2 className="text-sm font-bold text-slate-200 mb-3 flex items-center gap-2 uppercase tracking-wider">
+          <Target className="w-4 h-4 text-emerald-400" />
+          <span>Learning Objectives for Mastery</span>
+        </h2>
+        <div className="space-y-2">
+          {learningObjectives.map((obj, i) => (
+            <div key={i} className="flex items-start gap-2.5 text-xs text-slate-300">
+              <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <span>{obj}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Scanned Image Preview Modal */}
+      {/* Floating / Sticky Bottom Action */}
+      <div className="fixed bottom-6 left-0 right-0 max-w-4xl mx-auto px-4 pointer-events-none">
+        <div className="p-2 rounded-2xl bg-slate-950/90 border border-slate-800 shadow-2xl backdrop-blur-xl pointer-events-auto flex items-center justify-between gap-4">
+          <div className="hidden sm:block pl-3 text-xs text-slate-400">
+            Ready to interact with your AI tutor on <strong className="text-white">{topicName}</strong>?
+          </div>
+          <button
+            onClick={onStartLesson}
+            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-sky-500/25 transition-all cursor-pointer"
+          >
+            <span>Start 1-on-1 AI Tutor</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Board Snapshot Modal */}
       {showFullImage && scannedImage && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
-          <div className="relative max-w-4xl w-full max-h-[90vh] bg-slate-950 p-3 rounded-2xl border border-slate-700 shadow-2xl overflow-auto">
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-md">
+          <div className="max-w-4xl w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 shadow-2xl">
             <div className="flex items-center justify-between mb-3 px-2">
               <span className="text-sm font-bold text-white">Classroom Material Snapshot</span>
               <button
                 onClick={() => setShowFullImage(false)}
-                className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center"
+                className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>

@@ -110,7 +110,7 @@ export const TutorScreen: React.FC<TutorScreenProps> = ({
         {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: 'Binary Search cuts the search space in half each comparison. For 16 items: 16 → 8 → 4 → 2 → 1, which takes 4 steps (log₂(16) = 4).',
+          content: `Here is a foundational principle for ${analysis.topic || 'this topic'}: focus on the core rules, definitions, and relationships between concepts. How can I clarify this further for you?`,
           timestamp: 'Just now',
         },
       ]);
@@ -453,7 +453,7 @@ export const TutorScreen: React.FC<TutorScreenProps> = ({
             type="text"
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
-            placeholder={isListening ? 'Listening to voice...' : 'Ask your tutor anything about Binary Search...'}
+            placeholder={isListening ? 'Listening to voice...' : `Ask your tutor anything about ${analysis.topic || 'this topic'}...`}
             className="flex-1 bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none px-2"
           />
 

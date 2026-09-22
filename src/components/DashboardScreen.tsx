@@ -31,6 +31,7 @@ interface DashboardScreenProps {
   onNavigate: (screen: ScreenType) => void;
   learnerProfile?: LearnerProfileItem[];
   recommendedActivity?: string;
+  topic?: string;
 }
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({
@@ -38,19 +39,30 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   onNavigate,
   learnerProfile,
   recommendedActivity,
+  topic,
 }) => {
+  const isBinarySearchTopic = !topic || topic.toLowerCase().includes('binary search');
   const masteryItems: LearnerProfileItem[] = learnerProfile && learnerProfile.length > 0
     ? learnerProfile
-    : [
+    : isBinarySearchTopic
+    ? [
         { name: 'Binary Search', score: 88, status: 'Mastered', trend: '+14%' },
         { name: 'Arrays', score: 76, status: 'Proficient', trend: '+5%' },
         { name: 'Time Complexity', score: 86, status: 'Recovered & Mastered', trend: '+39%' },
         { name: 'Recursion', score: 42, status: 'Needs Intervention', trend: 'Gap Alert', warning: true },
+      ]
+    : [
+        { name: topic, score: 92, status: 'Mastered', trend: '+20%' },
+        { name: `${topic} Definitions`, score: 85, status: 'Proficient', trend: '+12%' },
+        { name: `${topic} Structure & Invariants`, score: 88, status: 'Recovered & Mastered', trend: '+35%' },
+        { name: `${topic} Advanced Modeling`, score: 58, status: 'Needs Intervention', trend: 'Gap Alert', warning: true },
       ];
 
   const nextActivity =
     recommendedActivity ||
-    '5-minute Recursion Fundamentals (Strengthen call stack intuition to elevate Divide & Conquer above 90%)';
+    (topic
+      ? `5-minute Advanced Case Studies on ${topic}`
+      : '5-minute Recursion Fundamentals (Strengthen call stack intuition to elevate Divide & Conquer above 90%)');
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 pb-24">
@@ -69,7 +81,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             Learning Mastery Dashboard
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 mt-1">
-            Real-time mastery index generated from classroom board scans &amp; diagnostic loops.
+            Real-time mastery index for <strong className="text-sky-400 font-semibold">{topic || 'Classroom Topics'}</strong> generated from board scans &amp; diagnostic loops.
           </p>
         </div>
 
@@ -124,7 +136,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
           <div className="flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-sky-400" />
             <h2 className="text-sm font-bold uppercase tracking-wider text-white">
-              Subject Mastery Index
+              {topic ? `${topic} Mastery Index` : 'Subject Mastery Index'}
             </h2>
           </div>
           <span className="text-xs text-slate-400">Cognitive Competency Tracking</span>

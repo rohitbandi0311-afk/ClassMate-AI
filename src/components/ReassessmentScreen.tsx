@@ -15,11 +15,13 @@ import { ReassessmentResult } from '../types';
 interface ReassessmentScreenProps {
   result: ReassessmentResult;
   onProceedToDashboard: () => void;
+  topic?: string;
 }
 
 export const ReassessmentScreen: React.FC<ReassessmentScreenProps> = ({
   result,
   onProceedToDashboard,
+  topic,
 }) => {
   const beforeScore = result.beforeScore || 47;
   const afterScore = result.afterScore || 86;
@@ -129,7 +131,7 @@ export const ReassessmentScreen: React.FC<ReassessmentScreenProps> = ({
         </div>
         <div>
           <h3 className="text-sm font-bold text-white">
-            Binary Search Foundations Unlocked
+            {topic ? `${topic} Mastered` : 'Topic Foundations Unlocked'}
           </h3>
           <p className="text-xs text-slate-400 mt-0.5">
             You successfully navigated the entire loop: Capture → Teach → Assess → Diagnose → Recover → Reassess.

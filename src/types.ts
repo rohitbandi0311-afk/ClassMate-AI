@@ -113,12 +113,15 @@ export interface ReassessmentResult {
 }
 
 export interface LearnerProfileConcept {
+  id?: string;
   name: string;
   score: number;
   trend: string;
   status: string;
   warning?: boolean;
 }
+
+export type LearnerProfileItem = LearnerProfileConcept;
 
 export type ScreenType =
   | 'home'
