@@ -1,0 +1,11 @@
+{
+  "name": "ClassMate AI",
+  "description": "From classroom to mastery. Turns classroom board photos and notes into a personalized learning, diagnosis, and recovery loop.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
