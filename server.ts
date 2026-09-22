@@ -744,4 +744,10 @@ async function startServer() {
   });
 }
 
-startServer();
+// Run the local Express/Vite server outside Vercel. On Vercel, the Express app is
+// exported to the catch-all serverless function in api/[...path].ts.
+if (process.env.VERCEL !== '1') {
+  startServer();
+}
+
+export default app;
